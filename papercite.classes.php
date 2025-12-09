@@ -1040,18 +1040,18 @@ class Papercite
 
 
         // Get the template files
-        $main = $this->getContent("$mainTpl", "tpl", "tpl", "MIMETYPE", $goptions, true);
-        $format = $this->getContent("$formatTpl", "tpl", "format", "MIMETYPE", $goptions, true);
+        $main = $this->getContent("$mainTpl", "tpl", "tpl", "", $goptions, true);
+        $format = $this->getContent("$formatTpl", "tpl", "format", "", $goptions, true);
 
         // Fallback to defaults if needed
         if (!$main) {
-            $main = $this->getContent(papercite::$default_options["{$mode}_template"], "tpl", "tpl", "MIMETYPE", $goptions, true);
+            $main = $this->getContent(papercite::$default_options["{$mode}_template"], "tpl", "tpl", "", $goptions, true);
             if (!$main) {
                 throw new \Exception("Could not find template {$mode}_template");
             }
         }
         if (!$format) {
-            $format = $this->getContent(papercite::$default_options["format"], "tpl", "format", "MIMETYPE", $goptions, true);
+            $format = $this->getContent(papercite::$default_options["format"], "tpl", "format", "", $goptions, true);
             if (!$main) {
                 throw new \Exception("Could not find template " . papercite::$default_options["format"]);
             }

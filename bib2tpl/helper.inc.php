@@ -59,11 +59,11 @@ class Bib2TplHelper
    * @access public
    * @param array options Options array with same semantics as main class.
    */
-  function __construct($options=array())
+  function __construct($options = array())
   {
     $this->_options = $options;
   }
-  
+
   /**
    * Obtains a month number from the passed entry.
    *
@@ -72,41 +72,35 @@ class Bib2TplHelper
    * @return string The passed entry's month number. <code>00</code> if
    *                the month could not be recognized.
    */
-  function _e2mn($entry) {
-   // Set default results
-   $result = '00';
-   
-   // if there is no month information then return default
-   if ( empty($entry['month']) )
-   {
-     return $result;
-   }
-   else
-   {
-     $month = $entry['month'];
-   }
-   
-   // if month is 1 or 2 decimal places then return it with zero padding e.i. 00,..05,..12  
-   if ( preg_match('/^\d[\d]$/', $month) )
-   {
-     $result = strlen($month) == 1 ? '0'.$month : $month;
-     return $result;
-   }
-   else
-   {     
-     // parses an English textual date into a Unix timestamp (the number of seconds since January 1 1970 00:00:00 GMT).
-     $date_stamp = strtotime(strtok($month,'-'));
+  function _e2mn($entry)
+  {
+    // Set default results
+    $result = '00';
 
-     if ( $date_stamp == true) 
-       {
-	 $result = date('m', $date_stamp); //get the zero padded month number
-	 return $result;
-       }
-     
-     // if nothing was found then return default
-     return $result;
-   }
- }
+    // if there is no month information then return default
+    if (empty($entry['month'])) {
+      return $result;
+    } else {
+      $month = $entry['month'];
+    }
+
+    // if month is 1 or 2 decimal places then return it with zero padding e.i. 00,..05,..12  
+    if (preg_match('/^\d[\d]$/', $month)) {
+      $result = strlen($month) == 1 ? '0' . $month : $month;
+      return $result;
+    } else {
+      // parses an English textual date into a Unix timestamp (the number of seconds since January 1 1970 00:00:00 GMT).
+      $date_stamp = strtotime(strtok($month, '-'));
+
+      if ($date_stamp == true) {
+        $result = date('m', $date_stamp); //get the zero padded month number
+        return $result;
+      }
+
+      // if nothing was found then return default
+      return $result;
+    }
+  }
 
   /**
    * Compares two group keys for the purpose of sorting.
@@ -119,8 +113,8 @@ class Bib2TplHelper
   function group_cmp($k1, $k2)
   {
     return  $this->_options['group_order'] !== 'desc'
-          ? strcmp($k1, $k2)
-          : -strcmp($k1, $k2);
+      ? strcmp($k1, $k2)
+      : -strcmp($k1, $k2);
   }
 
   /**
@@ -139,22 +133,24 @@ class Bib2TplHelper
 
     // Sort always descending by date inside the group
     if ($name == "year") {
-      $order = -strcmp($e1['year'].$this->_e2mn($e1),
-		       $e2['year'].$this->_e2mn($e2));
+      $order = -strcmp(
+        $e1['year'] . $this->_e2mn($e1),
+        $e2['year'] . $this->_e2mn($e2)
+      );
     } else if ($name == "firstauthor") {
       $order = -strcmp($e1["author"]->creators[0]["surname"], $e2["author"]->creators[0]["surname"]);
     } else if ($name == "author") {
-      $n = min(sizeof($e1["author"]), sizeof($e2["author"]));
-      for($i = 0; $i < $n; $i++) {
-	$order = -strcmp($e1["author"]->creators[$i]["surname"], $e2["author"]->creators[$i]["surname"]);
-	if ($order != 0) 
-	  break;
+      $n = min(count($e1["author"]->creators), count($e2["author"]->creators));
+      for ($i = 0; $i < $n; $i++) {
+        $order = -strcmp($e1["author"]->creators[$i]["surname"], $e2["author"]->creators[$i]["surname"]);
+        if ($order != 0)
+          break;
       }
-    } else 
+    } else
       $order = -strcmp($e1[$name], $e2[$name]);
 
 
-    return $this->_options['order'] === 'desc' 
+    return $this->_options['order'] === 'desc'
       ? $order
       : -$order;
   }
@@ -167,29 +163,21 @@ class Bib2TplHelper
    * @param array array Array to count
    * @param int depth Counting depth
    */
-  function lcount($array, $depth=1)
+  function lcount($array, $depth = 1)
   {
     $sum = 0;
     $depth--;
 
-    if ( $depth > 0 )
-    {
-      foreach ( $array as $elem )
-      {
+    if ($depth > 0) {
+      foreach ($array as $elem) {
         $sum += is_array($elem) ? $this->lcount($elem, $depth) : 0;
       }
-    }
-    else
-    {
-      foreach ( $array as $elem )
-      {
+    } else {
+      foreach ($array as $elem) {
         $sum += is_array($elem) ? 1 : 0;
       }
     }
 
     return $sum;
   }
-
-
 }
-?>

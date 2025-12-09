@@ -1,36 +1,37 @@
 <?php
-  /**
-   * The following changes have been made by Raphael Reitzig, 2010:
-   * - fixed spelling (l184)
-   * - added source bibtex to entry in data array (l380)
-   * - added entry key to entry in data array if present (l394 ff)
-   * - fixed brace removal (l893)
-   */
 
-  /**
-   * Class for working with BibTex data
-   *
-   * A class which provides common methods to access and
-   * create Strings in BibTex format
-   *
-   * PHP versions 4 and 5
-   *
-   * LICENSE: This source file is subject to version 3.0 of the PHP license
-   * that is available through the world-wide-web at the following URI:
-   * http://www.php.net/license/3_0.txt.  If you did not receive a copy of
-   * the PHP License and are unable to obtain it through the web, please
-   * send a note to license@php.net so we can mail you a copy immediately.
-   *
-   * @category   Structures
-   * @package    PaperciteStructures_BibTex
-   * @author     Elmar Pitschke <elmar.pitschke@gmx.de>
-   * @copyright  1997-2005 The PHP Group
-   * @license    http://www.php.net/license/3_0.txt  PHP License 3.0
-   * @version    CVS: $Id: BibTex.php 304756 2010-10-25 10:19:43Z clockwerx $
-   * @link       http://pear.php.net/package/PaperciteStructures_BibTex
-   */
+/**
+ * The following changes have been made by Raphael Reitzig, 2010:
+ * - fixed spelling (l184)
+ * - added source bibtex to entry in data array (l380)
+ * - added entry key to entry in data array if present (l394 ff)
+ * - fixed brace removal (l893)
+ */
 
-require_once 'PEAR.php' ;
+/**
+ * Class for working with BibTex data
+ *
+ * A class which provides common methods to access and
+ * create Strings in BibTex format
+ *
+ * PHP versions 4 and 5
+ *
+ * LICENSE: This source file is subject to version 3.0 of the PHP license
+ * that is available through the world-wide-web at the following URI:
+ * http://www.php.net/license/3_0.txt.  If you did not receive a copy of
+ * the PHP License and are unable to obtain it through the web, please
+ * send a note to license@php.net so we can mail you a copy immediately.
+ *
+ * @category   Structures
+ * @package    PaperciteStructures_BibTex
+ * @author     Elmar Pitschke <elmar.pitschke@gmx.de>
+ * @copyright  1997-2005 The PHP Group
+ * @license    http://www.php.net/license/3_0.txt  PHP License 3.0
+ * @version    CVS: $Id: BibTex.php 304756 2010-10-25 10:19:43Z clockwerx $
+ * @link       http://pear.php.net/package/PaperciteStructures_BibTex
+ */
+
+require_once 'PEAR.php';
 require_once 'bibtex_common.php';
 
 
@@ -149,6 +150,8 @@ class PaperciteStructures_BibTex
      * @var string
      */
     var $authorstring;
+    var $_pos;
+    var $_oldpos;
 
     /**
      * Constructor
@@ -158,8 +161,10 @@ class PaperciteStructures_BibTex
      */
     function __construct($options = array())
     {
-        $this->_delimiters     = array('"'=>'"',
-                                        '{'=>'}');
+        $this->_delimiters     = array(
+            '"' => '"',
+            '{' => '}'
+        );
         $this->data            = array();
         $this->content         = '';
         //$this->_stripDelimiter = $stripDel;
@@ -215,7 +220,7 @@ class PaperciteStructures_BibTex
         if (array_key_exists($option, $this->_options)) {
             $this->_options[$option] = $value;
         } else {
-            $ret = PEAR::raiseError('Unknown option '.$option);
+            $ret = PEAR::raiseError('Unknown option ' . $option);
         }
         return $ret;
     }
@@ -231,14 +236,14 @@ class PaperciteStructures_BibTex
     {
         if (file_exists($filename)) {
             if (($this->content = @file_get_contents($filename)) === false) {
-                return PEAR::raiseError('Could not open file '.$filename);
+                return PEAR::raiseError('Could not open file ' . $filename);
             } else {
                 $this->_pos    = 0;
                 $this->_oldpos = 0;
                 return true;
             }
         } else {
-            return PEAR::raiseError('Could not find file '.$filename);
+            return PEAR::raiseError('Could not find file ' . $filename);
         }
     }
 
@@ -256,7 +261,7 @@ class PaperciteStructures_BibTex
         $this->_oldpos = 0;
         return true; // For compatibility with loadFile
     }
-    
+
     /**
      * Parses what is stored in content and clears the content if the parsing is successfull.
      *
@@ -365,29 +370,80 @@ class PaperciteStructures_BibTex
     }
 
     static $accents = array(
-      "\'a" => "á", "\`a" => "à", "\^a" => "â", "\¨a" => "ä", '\"a' => "ä",
-      "\'A" => "Á", "\`A" => "À", "\^A" => "Â", "\¨A" => "Ä", '\"A' => "Ä",
-      "\aa" => "å", "\AA" => "Å", "\ae" => "æ", "\AE" => "Æ",
-      "\cc" => "ç",
-      "\cC" => "Ç",
-      "\'e" => "é", "\`e" => "è", "\^e" => "ê", "\¨e" => "ë", '\"e' => "ë",
-      "\'E" => "é", "\`E" => "È", "\^E" => "Ê", "\¨E" => "Ë", '\"E' => "Ë",
-      "\'i" => "í", "\`i" => "ì", "\^i" => "î", "\¨i" => "ï", '\"i' => "ï",
-      "\'I" => "Í", "\`I" => "Ì", "\^I" => "Î", "\¨I" => "Ï", '\"I' => "Ï",
-      "\l" => "ł",
-      "\L" => "Ł",
-      "\~n" => "ñ",
-      "\~N" => "Ñ",
-      "\o" => "ø", "\oe" => "œ",
-      "\O" => "Ø", "\OE" => "Œ",
-      "\'o" => "ó", "\`o" => "ò", "\^o" => "ô", "\¨o" => "ö", '\"o' => "ö", "\~o" => "õ", "\Ho" => "ő",
-      "\'O" => "Ó", "\`o" => "Ò", "\^O" => "Ô", "\¨O" => "Ö", '\"O' => "Ö", "\~O" => "Õ", "\HO" => "Ő",
-      '\ss' => "ß",
-      "\'u" => "ú", "\`u" => "ù", "\^u" => "û", "\¨u" => "ü", '\"u' => "ü",
-      "\'U" => "Ú", "\`U" => "Ù", "\^U" => "Û", "\¨U" => "Ü", '\"U' => "Ü",
-      "\'z" => "ź", "\.z" => "ż",
-      "\'Z" => "Ź", "\.Z" => "Ż",
-      "\&" => "&"
+        "\'a" => "á",
+        "\`a" => "à",
+        "\^a" => "â",
+        "\¨a" => "ä",
+        '\"a' => "ä",
+        "\'A" => "Á",
+        "\`A" => "À",
+        "\^A" => "Â",
+        "\¨A" => "Ä",
+        '\"A' => "Ä",
+        "\aa" => "å",
+        "\AA" => "Å",
+        "\ae" => "æ",
+        "\AE" => "Æ",
+        "\cc" => "ç",
+        "\cC" => "Ç",
+        "\'e" => "é",
+        "\`e" => "è",
+        "\^e" => "ê",
+        "\¨e" => "ë",
+        '\"e' => "ë",
+        "\'E" => "é",
+        "\`E" => "È",
+        "\^E" => "Ê",
+        "\¨E" => "Ë",
+        '\"E' => "Ë",
+        "\'i" => "í",
+        "\`i" => "ì",
+        "\^i" => "î",
+        "\¨i" => "ï",
+        '\"i' => "ï",
+        "\'I" => "Í",
+        "\`I" => "Ì",
+        "\^I" => "Î",
+        "\¨I" => "Ï",
+        '\"I' => "Ï",
+        "\l" => "ł",
+        "\L" => "Ł",
+        "\~n" => "ñ",
+        "\~N" => "Ñ",
+        "\o" => "ø",
+        "\oe" => "œ",
+        "\O" => "Ø",
+        "\OE" => "Œ",
+        "\'o" => "ó",
+        "\`o" => "ò",
+        "\^o" => "ô",
+        "\¨o" => "ö",
+        '\"o' => "ö",
+        "\~o" => "õ",
+        "\Ho" => "ő",
+        "\'O" => "Ó",
+        "\`o" => "Ò",
+        "\^O" => "Ô",
+        "\¨O" => "Ö",
+        '\"O' => "Ö",
+        "\~O" => "Õ",
+        "\HO" => "Ő",
+        '\ss' => "ß",
+        "\'u" => "ú",
+        "\`u" => "ù",
+        "\^u" => "û",
+        "\¨u" => "ü",
+        '\"u' => "ü",
+        "\'U" => "Ú",
+        "\`U" => "Ù",
+        "\^U" => "Û",
+        "\¨U" => "Ü",
+        '\"U' => "Ü",
+        "\'z" => "ź",
+        "\.z" => "ż",
+        "\'Z" => "Ź",
+        "\.Z" => "Ż",
+        "\&" => "&"
     );
 
     static function _accents_cb($input)
@@ -424,19 +480,19 @@ class PaperciteStructures_BibTex
         if ($this->_options['validate']) {
             $entrycopy = $entry; //We need a copy for printing the warnings
         }
-        $ret = array('bibtex' => $entry.'}');
+        $ret = array('bibtex' => $entry . '}');
         if ('@string' ==  strtolower(substr($entry, 0, 7))) {
             //String are not yet supported!
             if ($this->_options['validate']) {
-                $this->_generateWarning('STRING_ENTRY_NOT_YET_SUPPORTED', '', $entry.'}');
+                $this->_generateWarning('STRING_ENTRY_NOT_YET_SUPPORTED', '', $entry . '}');
             }
         } elseif ('@preamble' ==  strtolower(substr($entry, 0, 9))) {
             //Preamble not yet supported!
             if ($this->_options['validate']) {
-                $this->_generateWarning('PREAMBLE_ENTRY_NOT_YET_SUPPORTED', '', $entry.'}');
+                $this->_generateWarning('PREAMBLE_ENTRY_NOT_YET_SUPPORTED', '', $entry . '}');
             }
         } elseif ('@comment' ==  strtolower(substr($entry, 0, 8))) {
-      // Just ignores
+            // Just ignores
         } else {
             // Look for key
             $matches = array();
@@ -450,7 +506,7 @@ class PaperciteStructures_BibTex
                 $position = strrpos($entry, '=');
                 //Checking that the equal sign is not quoted or is not inside a equation (For example in an abstract)
                 $proceed  = true;
-                if (substr($entry, $position-1, 1) == '\\') {
+                if (substr($entry, $position - 1, 1) == '\\') {
                     $proceed = false;
                 }
                 if ($proceed) {
@@ -460,7 +516,7 @@ class PaperciteStructures_BibTex
                     $substring = substr($entry, 0, $position);
                     $position  = strrpos($substring, '=');
                     $proceed   = true;
-                    if (substr($entry, $position-1, 1) == '\\') {
+                    if (substr($entry, $position - 1, 1) == '\\') {
                         $proceed = false;
                     }
                     if ($proceed) {
@@ -468,10 +524,10 @@ class PaperciteStructures_BibTex
                     }
                 }
 
-                $value = trim(substr($entry, $position+1));
+                $value = trim(substr($entry, $position + 1));
                 $entry = substr($entry, 0, $position);
 
-                if (',' == substr($value, strlen($value)-1, 1)) {
+                if (',' == substr($value, strlen($value) - 1, 1)) {
                     $value = substr($value, 0, -1);
                 }
                 if ($this->_options['validate']) {
@@ -487,7 +543,7 @@ class PaperciteStructures_BibTex
                     $value = $this->_removeCurlyBraces($value);
                 }
                 $position    = strrpos($entry, ',');
-                $field       = strtolower(trim(substr($entry, $position+1)));
+                $field       = strtolower(trim(substr($entry, $position + 1)));
                 $ret[$field] = $value;
                 $entry       = substr($entry, 0, $position);
             }
@@ -500,17 +556,17 @@ class PaperciteStructures_BibTex
             }
             if ($this->_options['validate']) {
                 if (!$this->_checkAllowedEntryType($ret['entrytype'])) {
-                    $this->_generateWarning('WARNING_NOT_ALLOWED_ENTRY_TYPE', $ret['entrytype'], $entry.'}');
+                    $this->_generateWarning('WARNING_NOT_ALLOWED_ENTRY_TYPE', $ret['entrytype'], $entry . '}');
                 }
             }
 
             // Process accents
             foreach ($ret as $key => &$value) {
                 if ($key != "bibtex") {
-                      PaperciteStructures_BibTex::process_accents($value);
+                    PaperciteStructures_BibTex::process_accents($value);
                 }
             }
-        
+
             // Handling pages
             if (in_array('pages', array_keys($ret))) {
                 $matches = array();
@@ -553,8 +609,8 @@ class PaperciteStructures_BibTex
         //If we reach the position the amount of opening and closing braces should be equal
         $length = strlen($entry);
         $open   = 0;
-        for ($i = $length-1; $i >= $position; $i--) {
-            $precedingchar = substr($entry, $i-1, 1);
+        for ($i = $length - 1; $i >= $position; $i--) {
+            $precedingchar = substr($entry, $i - 1, 1);
             $char          = substr($entry, $i, 1);
             if (('{' == $char) && ('\\' != $precedingchar)) {
                 $open++;
@@ -570,9 +626,9 @@ class PaperciteStructures_BibTex
         //Then it is possible that the braces are equal even if the '=' is in an equation.
         if ($ret) {
             $entrycopy = trim($entry);
-            $lastchar  = $entrycopy{strlen($entrycopy)-1};
+            $lastchar  = $entrycopy[strlen($entrycopy) - 1];
             if (',' == $lastchar) {
-                $lastchar = $entrycopy{strlen($entrycopy)-2};
+                $lastchar = $entrycopy[strlen($entrycopy) - 2];
             }
             if ('"' == $lastchar) {
                 //The return value is set to false
@@ -581,7 +637,7 @@ class PaperciteStructures_BibTex
                 $ret = false;
                 $found = 0;
                 for ($i = $length; $i >= $position; $i--) {
-                    $precedingchar = substr($entry, $i-1, 1);
+                    $precedingchar = substr($entry, $i - 1, 1);
                     $char          = substr($entry, $i, 1);
                     if (('"' == $char) && ('\\' != $precedingchar)) {
                         $found++;
@@ -628,18 +684,18 @@ class PaperciteStructures_BibTex
         if (strrpos($entry, '=') !== false) {
             $position = strrpos($entry, '=');
             $proceed  = true;
-            if (substr($entry, $position-1, 1) == '\\') {
+            if (substr($entry, $position - 1, 1) == '\\') {
                 $proceed = false;
             }
             while (!$proceed) {
                 $substring = substr($entry, 0, $position);
                 $position  = strrpos($substring, '=');
                 $proceed   = true;
-                if (substr($entry, $position-1, 1) == '\\') {
+                if (substr($entry, $position - 1, 1) == '\\') {
                     $proceed = false;
                 }
             }
-            $value    = trim(substr($entry, $position+1));
+            $value    = trim(substr($entry, $position + 1));
             $open     = 0;
             $char     = '';
             $lastchar = '';
@@ -653,7 +709,7 @@ class PaperciteStructures_BibTex
                 $lastchar = $char;
             }
             //if open is grater zero were are inside an entry
-            if ($open>0) {
+            if ($open > 0) {
                 $ret = true;
             }
         }
@@ -707,7 +763,7 @@ class PaperciteStructures_BibTex
      */
     function _wordwrap($entry)
     {
-        if ((''!=$entry) && (is_string($entry))) {
+        if (('' != $entry) && (is_string($entry))) {
             $entry = wordwrap($entry, $this->_options['wordWrapWidth'], $this->_options['wordWrapBreak'], $this->_options['wordWrapCut']);
         }
         return $entry;
@@ -757,10 +813,10 @@ class PaperciteStructures_BibTex
                 if ($ord == 125) { //Closing brace
                     $openbrace--;
                 }
-                if (($ord>=65) && ($ord<=90) && (0==$openbrace)) { //The first character is uppercase
+                if (($ord >= 65) && ($ord <= 90) && (0 == $openbrace)) { //The first character is uppercase
                     $ret   = 1;
                     $found = true;
-                } elseif (($ord>=97) && ($ord<=122) && (0==$openbrace)) { //The first character is lowercase
+                } elseif (($ord >= 97) && ($ord <= 122) && (0 == $openbrace)) { //The first character is lowercase
                     $ret   = 0;
                     $found = true;
                 } else { //Not yet found
@@ -768,7 +824,7 @@ class PaperciteStructures_BibTex
                 }
             }
         } else {
-            $ret = PEAR::raiseError('Could not determine case on word: '.(string)$word);
+            $ret = PEAR::raiseError('Could not determine case on word: ' . (string)$word);
         }
         return $ret;
     }
@@ -843,7 +899,7 @@ class PaperciteStructures_BibTex
         //Now we get rid of the curly braces
         $value = preg_replace('/[\{\}]/', '', $value);
         //Reattach delimiters
-        $value       = $begin.$value.$end;
+        $value       = $begin . $value . $end;
         return $value;
     }
 
@@ -881,7 +937,7 @@ class PaperciteStructures_BibTex
      */
     function hasWarning()
     {
-        if (sizeof($this->warnings)>0) {
+        if (sizeof($this->warnings) > 0) {
             return true;
         } else {
             return false;
@@ -899,7 +955,7 @@ class PaperciteStructures_BibTex
         return sizeof($this->data);
     }
 
-   
+
 
     /**
      * Converts the stored BibTex entries to a BibTex String
@@ -914,14 +970,14 @@ class PaperciteStructures_BibTex
         $bibtex = '';
         foreach ($this->data as $entry) {
             //Intro
-            $bibtex .= '@'.strtolower($entry['entrytype']).' { '.$entry['cite'].",\n";
+            $bibtex .= '@' . strtolower($entry['entrytype']) . ' { ' . $entry['cite'] . ",\n";
             //Other fields except author
             foreach ($entry as $key => $val) {
-                if ($this->_options['wordWrapWidth']>0) {
+                if ($this->_options['wordWrapWidth'] > 0) {
                     $val = $this->_wordWrap($val);
                 }
-                if (!in_array($key, array('cite','entrytype','author'))) {
-                    $bibtex .= "\t".$key.' = {'.$val."},\n";
+                if (!in_array($key, array('cite', 'entrytype', 'author'))) {
+                    $bibtex .= "\t" . $key . ' = {' . $val . "},\n";
                 }
             }
             //Author
@@ -938,8 +994,8 @@ class PaperciteStructures_BibTex
             } else {
                 $author = '';
             }
-            $bibtex .= "\tauthor = {".$author."}\n";
-            $bibtex.="}\n\n";
+            $bibtex .= "\tauthor = {" . $author . "}\n";
+            $bibtex .= "}\n\n";
         }
         return $bibtex;
     }

@@ -1,4 +1,5 @@
 <?php
+
 /** Main Class Papercite moved to this file
  */
 
@@ -41,6 +42,7 @@ include("papercite_options.php");
  */
 class PaperciteAuthorMatcher
 {
+    var $filters = array();
     function __construct($authors)
     {
         // Each element of this array is alternative match
@@ -48,7 +50,7 @@ class PaperciteAuthorMatcher
 
         if (!isset($authors) || empty($authors)) {
         } elseif (!is_string($authors)) {
-            echo "Warning: cannot parse option \"authors\", this is specified by string!<br>";// probably useless..
+            echo "Warning: cannot parse option \"authors\", this is specified by string!<br>"; // probably useless..
             // string contains both: & and | => this is not supported
         } else {
             require_once(dirname(__FILE__) . "/lib/bibtex_common.php");
@@ -97,6 +99,8 @@ class Papercite
 
     // Our caches (bibtex files and formats)
     var $cache = array();
+    var $options = null;
+    var $_parser = null;
 
     // Array of arrays of current citations
     var $cites = array();
@@ -177,16 +181,49 @@ class Papercite
     static $bibtex_parsers = array("pear" => "Pear parser", "osbib" => "OSBiB parser");
 
     // Names of the options that can be set
-    static $option_names = array("format", "timeout", "file", "bibshow_template", "bibtex_template", "bibtex_parser",
-        "use_db", "auto_bibshow", "use_media", "use_files", "skip_for_post_lists", "process_titles", "checked_files", "show_links", "highlight", "ssl_check");
+    static $option_names = array(
+        "format",
+        "timeout",
+        "file",
+        "bibshow_template",
+        "bibtex_template",
+        "bibtex_parser",
+        "use_db",
+        "auto_bibshow",
+        "use_media",
+        "use_files",
+        "skip_for_post_lists",
+        "process_titles",
+        "checked_files",
+        "show_links",
+        "highlight",
+        "ssl_check"
+    );
 
     // Default value of options
     static $default_options =
-        array("format" => "ieee", "group" => "none", "order" => "desc", "sort" => "none", "key_format" => "numeric",
-            "bibtex_template" => "default-bibtex", "bibshow_template" => "default-bibshow", "bibtex_parser" => "osbib", "use_db" => false,
-            "auto_bibshow" => false, "use_media" => false, "use_files" => true, "skip_for_post_lists" => false, "group_order" => "", "timeout" => 3600, "process_titles" => true,
-            "checked_files" => array(array("pdf", "pdf", "", "pdf", "application/pdf")), "show_links" => true, "highlight" => "",
-            "ssl_check" => false);
+    array(
+        "format" => "ieee",
+        "group" => "none",
+        "order" => "desc",
+        "sort" => "none",
+        "key_format" => "numeric",
+        "bibtex_template" => "default-bibtex",
+        "bibshow_template" => "default-bibshow",
+        "bibtex_parser" => "osbib",
+        "use_db" => false,
+        "auto_bibshow" => false,
+        "use_media" => false,
+        "use_files" => true,
+        "skip_for_post_lists" => false,
+        "group_order" => "",
+        "timeout" => 3600,
+        "process_titles" => true,
+        "checked_files" => array(array("pdf", "pdf", "", "pdf", "application/pdf")),
+        "show_links" => true,
+        "highlight" => "",
+        "ssl_check" => false
+    );
 
     /**
      * Init is called before the first callback
@@ -478,7 +515,7 @@ class Papercite
                                 $parser->processTitles($processtitles);
                                 if (!$parser->parse($data)) {
                                     $this->cache[$biburi] = false;
-                                    break;
+                                    continue 2;
                                 } else {
                                     $this->cache[$biburi] = &$parser->data;
                                 }
@@ -672,7 +709,7 @@ class Papercite
 
             if ($x[1] == "template") {
                 // Special case of template: should overwrite the corresponding command template
-                $options["${command}_$x[1]"] = $value;
+                $options["{$command}_$x[1]"] = $value;
             } elseif (Papercite::startsWith($x[1], "filter:")) {
                 $options["filters"][substr($x[1], 7)] = $value;
             } else {
@@ -708,12 +745,12 @@ class Papercite
                 // this should return hmtl form and new command composed of (modified) $options_pairs
                 return $this->bibfilter($options);
 
-            // bibtex command:
+                // bibtex command:
             case "bibtex":
                 $result = $this->getEntries($options);
                 return $this->showEntries($result, $options, $this->getBib2TplOptions($options), false, $options["bibtex_template"], $options["format"], "bibtex");
 
-            // bibshow / bibcite commands
+                // bibshow / bibcite commands
             case "bibshow":
                 $data = $this->getData($options["file"], $options);
                 if (!$data) {
@@ -986,7 +1023,7 @@ class Papercite
         }
         $buf = '<UL class="ppc_footnotes" style="list-style: none">';
         foreach ($this->getTextualFootnotes() as $id => $content) {
-            $buf .= "<li><a class='ppc_footnote' name='fn_".$post_id.'_'.$id."'></a>(<sup>$id</sup>) $content</li>";
+            $buf .= "<li><a class='ppc_footnote' name='fn_" . $post_id . '_' . $id . "'></a>(<sup>$id</sup>) $content</li>";
         }
         $buf .= '</UL>';
         return $buf;
@@ -1008,9 +1045,9 @@ class Papercite
 
         // Fallback to defaults if needed
         if (!$main) {
-            $main = $this->getContent(papercite::$default_options["${mode}_template"], "tpl", "tpl", "MIMETYPE", $goptions, true);
+            $main = $this->getContent(papercite::$default_options["{$mode}_template"], "tpl", "tpl", "MIMETYPE", $goptions, true);
             if (!$main) {
-                throw new \Exception("Could not find template ${mode}_template");
+                throw new \Exception("Could not find template {$mode}_template");
             }
         }
         if (!$format) {
@@ -1099,7 +1136,7 @@ class Papercite
 
         $result = $this->getEntries($options);
         ob_start();
-        ?>
+?>
         <form method="post" accept-charset="UTF-8">
             <input type="hidden" name="papercite_post_id" value="<?php echo $post->ID ?>">
             <table style="border-top: solid 1px #eee; border-bottom: solid 1px #eee; width: 100%">
@@ -1137,12 +1174,12 @@ class Papercite
                             }
                             ?>
                         </select></td>
-                    <td><input type="submit" value="Filter"/></td>
+                    <td><input type="submit" value="Filter" /></td>
                 </tr>
             </table>
         </form>
 
-        <?php
+<?php
 
         $entries_output = $this->showEntries(
             $result,
@@ -1168,8 +1205,6 @@ class Papercite
         $ft_id = ++$this->textual_footnotes_counter;
         $this->textual_footnotes[$ft_id] = $matches[1];
         //d($this->textual_footnotes);
-        return "<A href='#fn_".$post_id.'_'.$ft_id."'>(<sup>$ft_id</sup>)</A>";
+        return "<A href='#fn_" . $post_id . '_' . $ft_id . "'>(<sup>$ft_id</sup>)</A>";
     }
-
-
 }
